@@ -18,24 +18,23 @@ def get_lines(filename: str) -> list:
 
 
 def parse_ip_entries(ip_entries: list) -> list:
-    parsed_ips = list()
+    parsed_ips = set()
     for each_entry in tqdm(ip_entries):
         if '-' in each_entry:
             # dashed range
             lower_bound, upper_bound = [int(ipaddress.IPv4Address(x)) for x in each_entry.split('-')]
-            parsed_ips.extend(list(range(lower_bound, upper_bound+1)))
-            #while lower_bound <= upper_bound:
-            #    parsed_ips.append(int(ipaddress.IPv4Address(lower_bound)))
-            #    lower_bound += 1
+            for x in range(lower_bound, upper_bound+1):
+                parsed_ips.add(x)
         elif '/' in each_entry:
             # CIDR block
             network = ipaddress.IPv4Network(each_entry)
             lower_bound = int(ipaddress.IPv4Address(network.network_address))
             upper_bound = int(ipaddress.IPv4Address(network.broadcast_address))
-            parsed_ips.extend(list(range(lower_bound, upper_bound+1)))
+            for x in range(lower_bound, upper_bound+1):
+                parsed_ips.add(x)
         else:
             # individual IP address
-            parsed_ips.append(int(ipaddress.IPv4Address(each_entry)))
+            parsed_ips.add(int(ipaddress.IPv4Address(each_entry)))
     return parsed_ips
 
 

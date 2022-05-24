@@ -1,10 +1,15 @@
 use std::fs;
 use std::str::FromStr;
+use indicatif::ProgressBar;
 use std::collections::HashSet;
 use chrono::Utc;
 use clap::{App, Arg};
 
 fn get_args() -> (String, String) {
+    /**
+     * This utility takes two mandatory, positional arguments. These specify
+     * the CSV files containing the subset and superset of IPs.
+     */
     let matches = App::new("Compare IP addresses and ranges")
         .arg(Arg::with_name("a_file"))
         .arg(Arg::with_name("b_file"))
@@ -15,6 +20,10 @@ fn get_args() -> (String, String) {
 }
 
 fn read_ip_entries(filename: &str) -> Vec<String> {
+    /**
+     * Given a filename, returns a Vector of Strings representing the
+     * individual lines. There's no actual parsing or validation here.
+     */
     let contents = fs::read_to_string(filename)
         .expect("Something went wrong reading the file.");
     let ip_entries: Vec<String> = contents.trim().split("\n").map(|x| x.to_string()).collect();
@@ -22,6 +31,11 @@ fn read_ip_entries(filename: &str) -> Vec<String> {
 }
 
 fn convert_ipv4_address(ip_address: &str) -> u32 {
+    /**
+     * As the name implies, takes a String representing a dotted IPv4 address,
+     * e.g., "192.168.1.1", and converts it to the 32-bit decimal
+     * representation (3232235777.)
+     */
     let mut encoded_address: u32 = 0;
     for (octet_num, each_octet) in ip_address.split(".").enumerate() {
         let each_octet = u32::from_str(each_octet).unwrap();
@@ -31,6 +45,11 @@ fn convert_ipv4_address(ip_address: &str) -> u32 {
 }
 
 fn _integer_to_ipv4_address(raw_address: u32) -> String {
+    /**
+     * Unused utility function, converts a 32-bit decimal reprsentation of an
+     * IPv4 address to the standard dot-decimal String represenation humans
+     * usually work with.
+     */
     let mut working_address = raw_address.clone();
     let mut encoded_address = String::new();
     for octet_num in 0..4 {
@@ -45,7 +64,14 @@ fn _integer_to_ipv4_address(raw_address: u32) -> String {
 }
 
 fn parse_ip_entries(ip_entries: Vec<String>) -> HashSet<u32> {
+    /**
+     * Takes a Vector of Strings, which can represent individual IPv4
+     * addresses, dashed ranges, or CIDR blocks.
+     * Returns a HashSet of individual IP addresses, represented as 32-bit
+     * integers.
+     */
     let mut parsed: HashSet<u32> = HashSet::new();
+    let bar = ProgressBar::new(ip_entries.len() as u64);
     for each_entry in ip_entries {
         if each_entry.contains("-") {
             // dashed IP range
@@ -69,11 +95,17 @@ fn parse_ip_entries(ip_entries: Vec<String>) -> HashSet<u32> {
             // individual IP address
             parsed.insert(convert_ipv4_address(&each_entry));
         }
+        // increment our progress bar with each IP address/range/CIDR we process.
+        bar.inc(1);
     }
+    bar.finish();
     parsed
 }
 
 fn print_with_time(message: &str) {
+    /**
+     * Precede any console messages with a timestamp.
+     */
     println!("{}: {}", Utc::now().format("%T"), message);
 }
 

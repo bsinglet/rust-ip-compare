@@ -2,7 +2,7 @@ use std::fs;
 use std::str::FromStr;
 use indicatif::ProgressBar;
 use std::collections::HashSet;
-use chrono::Utc;
+use chrono::Local;
 use clap::{App, Arg};
 
 /// Represents a contiguous range of IPv4 addresses,
@@ -170,7 +170,7 @@ fn a_in_b(a: Vec<IPRange>, b: Vec<IPRange>) -> bool {
 
 /// Precede any console messages with a timestamp.
 fn print_with_time(message: &str) {
-    println!("{}: {}", Utc::now().format("%T"), message);
+    println!("{}: {}", Local::now().format("%T"), message);
 }
 
 fn main() {
